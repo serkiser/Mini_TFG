@@ -3,5 +3,18 @@
 VERSION : 0.1
 
 BEGIN
+	//Inicio de Gemma, activa las condiciones iniciales o la pnatlla HMI manual
+	IF "A1" AND ("Marcha" OR "Marcha_HMI") THEN
+	    "F2" := TRUE;
+	ELSIF "A1" AND "Manual" THEN
+	    "F4" := TRUE;
+	END_IF;
+	
+	//Etapa F2
+	IF _condition_ THEN
+	    // Statement section IF
+	    ;
+	END_IF;
+	
 END_FUNCTION
 
