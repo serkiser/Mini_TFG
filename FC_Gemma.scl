@@ -3,18 +3,65 @@
 VERSION : 0.1
 
 BEGIN
-	//Inicio de Gemma, activa las condiciones iniciales o la pnatlla HMI manual
+	//Inicio de Gemma, activa las condiciones iniciales o la pantalla HMI manual
 	IF "A1" AND ("Marcha" OR "Marcha_HMI") THEN
 	    "F2" := TRUE;
+	    "A1" := FALSE;
 	ELSIF "A1" AND "Manual" THEN
 	    "F4" := TRUE;
+	    "A1" := FALSE;
 	END_IF;
 	
 	//Etapa F2
-	IF _condition_ THEN
-	    // Statement section IF
+	IF "F2" AND (*F2_Efinal*) THEN
+	    "F1":= TRUE;
+	    "A1" := FALSE;
+	END_IF;
+	
+	//Etapa F1
+	IF "F1" THEN
+	    //Activa D1 por Emergencia
+	    IF NOT "Seta Emergencias" OR NOT "Termicos_y_Var" THEN
+	        "D1" := TRUE;
+	        "F1" := FALSE;
+	    END_IF;
+	    
+	    //Activa A2 por fin de ciclo
+	    IF "Fin ciclo" OR "Fin ciclo_HMI" THEN
+	        "A2" := TRUE;
+	        "F1" := FALSE;
+	    END_IF;
+	    
+	    //Activa A3 por pausa fisica o por HMI
+	    IF "Pausa" OR "Pausa_HMI" THEN
+	        "A3" := TRUE;
+	        "F1" := FALSE;
+	    END_IF;
+	    
+	    //Activa F4 para entrar al modo manual
+	    IF "Manual" THEN
+	        "F4" := TRUE;
+	        "F1" := FALSE;
+	    END_IF;
 	    ;
 	END_IF;
+	
+	//Etapa D1
+	IF "D1" THEN
+	    IF "Seta Emergencias" AND "Termicos_y_Var" AND ("Rearme" OR "Rearme_HMI") THEN
+	        "A1" := TRUE;
+	        "D1" := FALSE;
+	    END_IF;
+	    ;
+	END_IF;
+	
+	//Etapa A2
+	
+	
+	//Etapa A3
+	
+	
+	//Etapa F4
 	
 END_FUNCTION
 
