@@ -1,0 +1,7 @@
+﻿FUNCTION "FC_Gemma" : Void
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+
+BEGIN
+END_FUNCTION
+
