@@ -7,25 +7,16 @@ BEGIN
 	IF "A1" AND ("Marcha" OR "Marcha_HMI") THEN
 	    "F2" := TRUE;
 	    "A1" := FALSE;
-	ELSIF "A1" AND "Manual" THEN
-	    "F4" := TRUE;
-	    "A1" := FALSE;
 	END_IF;
 	
 	//Etapa F2
-	IF "F2" AND (*F2_Efinal*) THEN
+	IF "F2" AND "F2_E6" THEN
 	    "F1":= TRUE;
 	    "A1" := FALSE;
 	END_IF;
 	
 	//Etapa F1
 	IF "F1" THEN
-	    //Activa D1 por Emergencia
-	    IF NOT "Seta Emergencias" OR NOT "Termicos_y_Var" THEN
-	        "D1" := TRUE;
-	        "F1" := FALSE;
-	    END_IF;
-	    
 	    //Activa A2 por fin de ciclo
 	    IF "Fin ciclo" OR "Fin ciclo_HMI" THEN
 	        "A2" := TRUE;
@@ -37,13 +28,13 @@ BEGIN
 	        "A3" := TRUE;
 	        "F1" := FALSE;
 	    END_IF;
-	    
-	    //Activa F4 para entrar al modo manual
-	    IF "Manual" THEN
-	        "F4" := TRUE;
-	        "F1" := FALSE;
-	    END_IF;
-	    ;
+	END_IF;
+	
+	//Activación Etapa D1
+	IF ("F2" OR "F1") AND (NOT "Seta Emergencias" OR NOT "Termicos_y_Var") THEN
+	    "D1" := TRUE;
+	    "F1" := FALSE;
+	    "F2" := FALSE;
 	END_IF;
 	
 	//Etapa D1
@@ -56,12 +47,43 @@ BEGIN
 	END_IF;
 	
 	//Etapa A2
-	
+	IF "A2" AND (*F1_E0*) THEN
+	    "A1" := TRUE;
+	    "A2" := FALSE;
+	END_IF;
 	
 	//Etapa A3
+	IF "A3" THEN
+	    IF "Marcha" OR "Marcha_HMI" THEN
+	        "F1" := TRUE;
+	        "A3" := FALSE;
+	    END_IF;
+	END_IF;
 	
+	//Activación F4
+	IF ("A1" OR "F1" AND "Manual") THEN
+	    "F4" := TRUE;
+	    //Saber que etapa estaba activa
+	    IF "A1" THEN
+	        "A1_Manual" := TRUE;
+	    ELSIF "F1" THEN
+	        "F1_Maunal" := TRUE;
+	    END_IF;
+	    "A1" := FALSE;
+	    "F1" := FALSE;
+	END_IF;
 	
 	//Etapa F4
+	IF "F4" AND "Salir" THEN
+	    //Elige que etapa activa
+	    IF "A1_Manual" THEN
+	        "A1" := TRUE;
+	        "F4" := FALSE;
+	    ELSIF "F1_Maunal" THEN
+	        "F1" := TRUE;
+	        "F4" := FALSE;
+	    END_IF;
+	END_IF;
 	
 END_FUNCTION
 
