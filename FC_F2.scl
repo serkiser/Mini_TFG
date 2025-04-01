@@ -3,5 +3,120 @@
 VERSION : 0.1
 
 BEGIN
+	//Etapa 0 de F2
+	IF "F2_E0" AND "F2" THEN
+	    "F2_E1" := TRUE;
+	    "F2_E0" := FALSE;
+	END_IF;
+	
+	//Etapa 1 de F2 -> Activa la sirena por 3 segundos y con una intermitencia de 2,5Hz
+	IF "F2_E1" THEN
+	    //Cuando pasé el tiempo, cambia de etapa
+	    IF "TON_1".Q THEN
+	        "F2_E2" := TRUE;
+	        "F2_E1" := FALSE;
+	        "SH1 H1 Emergencia" := FALSE;
+	    END_IF;
+	    //Temporizador de 5 segundos
+	    "TON_1".TON(IN:="F2_E1",
+	                PT:= T#5s);
+	    //Salida de la sirena con una intermitencia de 2.5Hz
+	    "SH1 H1 Emergencia" := "Clock_2.5Hz";
+	END_IF;
+	
+	//Etapa 2 de F2 -> Activa 0V para el sistema neumatica
+	//y la luz de condiciones iniciales en proceso
+	IF "F2_E2" THEN
+	    //Cuando pase un segundo y el sistema tenga la presión necesaria pasa de etapa
+	    IF "TON_2".Q AND "0B" THEN
+	        "F2_E3" := TRUE;
+	        "F2_E2" := FALSE;
+	    END_IF;
+	    //Temporizador de 1 segundo de espera
+	    "TON_2".TON(IN:="F2_E2",
+	                PT:= T#1s);
+	    //Activación de 0V y la luz naranja
+	    "0V" := TRUE;
+	    "SH4 Naranja" := TRUE;
+	END_IF;
+	
+	//Etapa 3 de F2 -> Retrocederer paquete en caso que esté en el seleccionador
+	IF "F2_E3" THEN
+	    //Cuando pasen 3 segundos o detectec que a salido una caja pasa de etapa
+	    IF  "TON_3".Q OR "FN_1".Q THEN
+	        "F2_E4" := TRUE;
+	        "F2_E3" := FALSE;
+	    END_IF;
+	    //Temporizador de 3 segundos
+	    "TON_3".TON(IN:="F2_E3",
+	                PT:=T#3s);
+	    //Flanco negativo de SB4
+	    "FN_1"(CLK := "SB4");
+	    "1M1_1A" := TRUE;
+	    "1M2_1A" := TRUE;
+	    "KM2_retroceso" := TRUE;
+	END_IF;
+	
+	//Etapa 4 de F2 -> si detecta pieza alta, activa una marca y cambia de etapa
+	//si detecta pequeña o larga, pasa de etapa, si pasan 7,5 segundos pasa de etapa
+	IF "F2_E4" THEN
+	    //Apagar las salidas
+	    "1M1_1A" := FALSE;
+	    "1M2_1A" := FALSE;
+	    "KM2_retroceso" := FALSE;
+	    //Si pasan 7.5 segundos o detecta una pieza grande, pasa de etapa
+	    //Si hay una caja grande activa una marca
+	    IF "TON_4".Q OR "SB1" OR ("SB1" AND "FN_2".Q) THEN
+	        "F2_E5" := TRUE;
+	        "F2_E4" := FALSE;
+	    END_IF;
+	    "TON_4".TON(IN:="F2_E4",
+	                PT:=T#7.5s);
+	    "FN_2"(CLK:="SB2");
+	    //Marca pieza alta
+	    "M1" := "SB1" AND "FN_2".Q;
+	    "VAR1_LI2" := TRUE;
+	    "VAR1_LI3" := TRUE;
+	END_IF;
+	
+	//Etapa 5 de F2 
+	IF "F2_E5" THEN
+	    "VAR1_LI2" := FALSE;
+	    //Cuando pase el tiempo del temporizador cambiara de etapa
+	    IF "TON_5".Q THEN
+	        "F2_E6" := TRUE;
+	        "F2_E5" := FALSE;
+	    END_IF;
+	    //Temporizador de 
+	    "TON_5".TON(IN:="F2_E5",
+	                PT:=t#7.5s);
+	    "VAR1_LI3" := TRUE;
+	    "VAR2_LI3" := TRUE;
+	    "VAR3_LI1" := TRUE;
+	    "VAR3_LI3" := TRUE;
+	    "VAR4_LI1" := TRUE;
+	    //Si detecta SB6 qie a terminado de pasar una caja, para esa cinta
+	    "FN_3"(CLK:="SB6");
+	    IF "FN_3".Q THEN
+	        "VAR1_LI3" := FALSE;
+	        "VAR2_LI1" := FALSE;
+	    END_IF;
+	    
+	    //Si detecta SB8 qie a terminado de pasar una caja, para esa cinta
+	    "FN_4"(CLK := "SB8");
+	    IF "FN_4".Q THEN
+	        "VAR2_LI3" := FALSE;
+	        "VAR3_LI1" := FALSE;
+	    END_IF;
+	    
+	    //Si detecta SB10 qie a terminado de pasar una caja, para esa cinta
+	    "FN_5"(CLK := "SB10");
+	    IF "FN_5".Q THEN
+	        "VAR3_LI3" := FALSE;
+	        "VAR4_LI1" := FALSE;
+	    END_IF;
+	END_IF;
+	
+	
 END_FUNCTION
 
